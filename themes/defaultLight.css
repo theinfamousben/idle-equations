@@ -1,0 +1,10 @@
+:root {
+    --background-color: #f5f5f5;
+    --text-color: #000;
+    --background-color-active: #dddddd;
+    --red-accent-color: #ff0000;
+    --green-accent-color: #00ff00;
+    --black-accent-color: #000000;
+    --yellow-accent-color: #db8400;
+    --text-color-subtle: #666;
+}

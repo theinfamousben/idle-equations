@@ -1,0 +1,71 @@
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+#game {
+    display: flex;
+    background-color: var(--background-color);
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+}
+
+#moneyDisplay {
+    font-size: 2.2em;
+    color: var(--text-color)
+}
+
+#productionLine {
+    font-size: 3em;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    padding: 0 0.2em;
+    border-radius: 8px;
+    border: 2px solid var(--black-accent-color);
+    width: 80%;
+
+}
+
+#productionLine:focus {
+    outline: none;
+    background-color: var(--background-color-active);
+}
+
+#mpsDisplay {
+    font-size: 1.5em;
+    color: var(--text-color-subtle);
+}
+
+#productionLineWarning {
+    font-size: 100%;
+    font-style: italic;
+}
+
+#productionLineWarningContainer {
+    height: 0.5em;
+}
+
+#productionLineContainer {
+    display: flex;
+    width: 80%;
+}
+
+#productionLineContainer select {
+    background-color: var(--background-color);
+    font-size: 18px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 8px;
+    border: 2px solid var(--black-accent-color);
+
+}
+
+#productionLineContainer select:hover {
+    background-color: var(--background-color-active);
+}
+
+#productionLineContainr select:focus {
+    outline: none;
+}
