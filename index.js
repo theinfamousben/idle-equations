@@ -2,6 +2,9 @@ import {evaluate} from 'https://cdn.jsdelivr.net/npm/mathjs@13.2.0/+esm';
 import Decimal from './break_infinity.js';
 import * as notation from './notation.js';
 
+import en_us from "./lang/en_us.js";
+import de_de from "./lang/de_de.js";
+
 function l(what) {
     return document.getElementById(what);
     // yes i stole this from cookie clicker sue me bitch
@@ -23,7 +26,7 @@ var Game = {};
     Game.settings = {
         framerate: {
             name: "Framerate",
-            name: "Sets the rate at which the game runs ticks <br><em>note that this will not change the money you make per second; on lower end devices, the game might run slower on lower end devices</em>",
+            description: "Sets the rate at which the game runs ticks <br><em>note that this will not change the money you make per second; higher framerates might run slower on lower end devices</em>",
             category: "Gameplay",
             value: 24,
             constriction: [1, 30],
@@ -35,9 +38,19 @@ var Game = {};
             name: "Theme",
             description: "Sets the theme for the game",
             category: "Visuals",
-            value: 'defaultLight',
-            constriction: ['defaultLight'],
-            default: 'defaultLight',
+            value: 'defaultDark',
+            constriction: ['defaultLight', 'defaultDark'],
+            default: 'defaultDark',
+            showInMenu: true,
+            editableByUser: true,
+        },
+        language: {
+            name: "Language",
+            desctiption: "The Language the Game is in",
+            category: "Gameplay",
+            value: "de_de",
+            constriction: ["en_us", "de_de"],
+            default: "en_us",
             showInMenu: true,
             editableByUser: true,
         }
@@ -70,42 +83,35 @@ var Game = {};
     );
 
     Game.updateVisuals = function() {
-        l('moneyDisplay').innerHTML = "You have " + notation.biNotation(Game.money, 2) + " money.";
-        l('mpsDisplay').innerHTML = "With your equation, you are making " + notation.biNotation(Game.mps, 2) + " money per second.";
+        let plw = l('productionLineWarning');
+        l('moneyDisplay').innerHTML = Game.transl("YouHaveXMoney");
+        l('mpsDisplay').innerHTML = Game.transl("WithYourEquation");
         let check = Game.productionLineCheck();
         if (check[0] == 0) {
             l('productionLine').style.borderColor = "var(--red-accent-color)";
             if (check[1] == 0) {
-                l('productionLineWarning').style.display = "none";
+                plw.innerHTML = "‎";
             }
             else if (check[1] == 1) {
-                l('productionLineWarning').style.display = "block";
-                l('productionLineWarning').style.color = "var(--red-accent-color)";
-                l('productionLineWarning').innerHTML = `${check[2]} is not unlocked yet`;
+                plw.style.color = "var(--red-accent-color)";
+                plw.innerHTML = Game.transl(check[3] ? "productionLineWarning.TooManyUsesOfX" : "productionLineWarning.XNotUnlocked", Game.transl("operation." + check[2]));
             }
             else if (check[1] == 2) {
-                l('productionLineWarning').style.display = "block";
-                l('productionLineWarning').style.color = "var(--red-accent-color)";
-                l('productionLineWarning').innerHTML = `Too many uses of number ${check[2]}`;
+                plw.style.color = "var(--red-accent-color)";
+                plw.innerHTML = Game.transl("productionLineWarning.TooManyUsesOfNumberX", check[2]);
             }
         }
         else if (check[0] == 1) {
             l('productionLine').style.borderColor = "var(--black-accent-color)";
-            l('productionLineWarning').style.display = "none";
+            plw.innerHTML = "‎";
         }
         else if (check[0] == 2) {
-            l('productionLineWarning').style.display = "block";
-            l('productionLineWarning').style.color = "var(--yellow-accent-color)";
-            l('productionLineWarning').innerHTML = "Your equation is making more money than your cap ("+ Game.mpsCap + ").";
+            plw.style.color = "var(--yellow-accent-color)";
+            plw.innerHTML = Game.transl("productionLineWarning.HigherThanCap");
             l('productionLine').style.borderColor = "var(--yellow-accent-color)";
         }
     }
 
-    Game.init = function() {
-        Game.money = new Decimal(0);
-        Game.mpsCap = new Decimal(1);
-        Game.timers['GameLoop'] = Game.addTimer(Game.settings.framerate.value, Game.loop);
-    }
 
     Game.productionLineCheck = function() {
         let prodLine = l('productionLine').value;
@@ -119,8 +125,6 @@ var Game = {};
             }
         }
 
-
-
         try {
             evaluate(prodLine);
         } catch (e) {
@@ -129,8 +133,9 @@ var Game = {};
 
         for (let inc in Game.incrementors) {
             if (occ[Game.incrementors[inc].representation] > Game.incrementors[inc].maxUses) {
-                return [0, 1, `${inc} (${Game.incrementors[inc].representation})`];
+                return [0, 1, Game.incrementors[inc].id, Game.incrementors[inc].maxUses > 0];
             }
+            
         }
 
         for (let number in [0,1,2,3,4,5,6,7,8,9]) {
@@ -147,9 +152,12 @@ var Game = {};
     }
 
     Game.calculateMps = function() {
-        if (Game.productionLineCheck()[0] == 0) return;
+        if (Game.productionLineCheck()[0] == 0) {
+            Game.mps = new Decimal(0);
+            return;
+        }
+        let q;
         let prodLine = l('productionLine').value;
-        let q
         try { q = new Decimal(evaluate(prodLine)); } catch(e) {
 
         }
@@ -163,16 +171,87 @@ var Game = {};
     }
 
     Game.loop = function() {
+        if (Game.timers["GameLoop"][1] != Game.settings.framerate.value) {
+            clearInterval(Game.timers["GameLoop"][0]);
+            Game.timers["GameLoop"] = Game.addTimer(Game.settings.framerate.value, Game.loop);
+        }
         Game.calculateMps();
         Game.money = Game.money.plus(Game.mps.div(Game.settings.framerate.value));
         Game.updateVisuals();
     }
 
     Game.addTimer = function(fps, callback) {
-        return setInterval(callback, 1000 / fps);
+        return [setInterval(callback, 1000 / fps), fps];
+    }
+
+    Game.changelog = `
+        <h2>Version 0.1</h2>
+        <p></p>
+        <ul>
+            <li>Initial Release</li>
+        <ul>
+    `;
+    
+    Game.tooltip = function(parent, title) {
+        this.parent = l(parent);
+        this.title = title;
+
+        this.element = createElement("div");
+        this.element.appendChild("p").innerHTML = this.title;
+        this.element.setAttribute("id", this.parent.id+"_tooltip");
+        
+        this.create = function() {
+            this.parent.appendChild(this.element);
+            this.element.style.display = "none";
+
+            this.element.addEventListener("mouseover", this.mouseOver);
+            this.element.addEventListener("mouseout", this.mouseOut);
+        }
+
+        this.mouseOver = function() {
+            this.element.style.display = "block";
+        }
+
+        this.mouseOut = function() {
+            this.element.style.display = "none";
+        }
+    }
+
+    Game.tooltips = {};
+
+    Game.transl = function(what, cusVar) {
+        const lang = Game.settings.language.value;
+        let exit = eval(lang + ".words[\"" + what + "\"]") ?? eval(lang + ".words[\"missing\"]") ?? "missing";
+
+        if (cusVar) {
+            exit = exit.replace("&&cusVar&&", cusVar);
+        }
+
+        exit = exit.replace("&&test&&", "test")
+            .replace("&&ttext&&", what)
+            .replace("&&money&&", notation.biNotation(Game.money, 2))
+            .replace("&&mps&&", notation.biNotation(Game.mps, 2))
+            .replace("&&mpsCap&&", Game.mpsCap);
+        ;
+        return exit;
+    }
+
+    Game.loadTheme = function(theme) {
+        l('theme').href = "./themes/" + theme + ".css"
+    }
+
+
+
+
+
+
+    Game.init = function() {
+        Game.loadTheme(Game.settings.theme.value);
+        Game.money = new Decimal(0);
+        Game.mpsCap = new Decimal(1);
+        Game.timers['GameLoop'] = Game.addTimer(Game.settings.framerate.value, Game.loop);
     }
 })();
-
 
 document.addEventListener('DOMContentLoaded', function() {
     Game.init();

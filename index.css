@@ -1,17 +1,26 @@
+
 html, body {
-    margin: 0;
+    font-family: Consolas;
+    background-color: var(--backgruond-color);
     padding: 0;
+    margin: 0;
 }
 
 #game {
-    display: flex;
+    height: 100vh;
     background-color: var(--background-color);
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-    width: 100%;
 }
 
+#home {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.page {
+    height: 100%;
+}
 #moneyDisplay {
     font-size: 2.2em;
     color: var(--text-color)
@@ -36,15 +45,13 @@ html, body {
 #mpsDisplay {
     font-size: 1.5em;
     color: var(--text-color-subtle);
+    margin: 10px;
 }
 
 #productionLineWarning {
-    font-size: 100%;
     font-style: italic;
-}
-
-#productionLineWarningContainer {
-    height: 0.5em;
+    margin: 0;
+    padding: 0;
 }
 
 #productionLineContainer {
@@ -54,6 +61,7 @@ html, body {
 
 #productionLineContainer select {
     background-color: var(--background-color);
+    color: var(--text-color);
     font-size: 18px;
     margin: 0 10px;
     border: none;
@@ -66,6 +74,6 @@ html, body {
     background-color: var(--background-color-active);
 }
 
-#productionLineContainr select:focus {
+#productionLineContainer select:focus {
     outline: none;
 }
