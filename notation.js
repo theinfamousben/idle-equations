@@ -4,7 +4,10 @@ function timeNotation(ms) {
     const minutes = dateObj.getUTCMinutes();
     const seconds = dateObj.getSeconds();
     const milliseconds = ms.toString().slice(-3);
-    const timeString = hours.toString().padStart(2, '0') + ':' +  minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0') + "." + milliseconds;
+    const timeString = hours.toString().padStart(2, '0') + ':' +  
+        minutes.toString().padStart(2, '0') + ':' + 
+        seconds.toString().padStart(2, '0') + "." + 
+        milliseconds;
 
     return timeString;
 }
