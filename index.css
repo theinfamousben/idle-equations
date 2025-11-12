@@ -1,9 +1,11 @@
 
+
 html, body {
     font-family: Consolas;
     background-color: var(--backgruond-color);
     padding: 0;
     margin: 0;
+    color: var(--text-color);
 }
 
 #game {
@@ -16,6 +18,13 @@ html, body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+}
+
+#research {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .page {
@@ -40,6 +49,39 @@ html, body {
 #productionLine:focus {
     outline: none;
     background-color: var(--background-color-active);
+}
+
+/* Research viewport and map styles for draggable tech tree */
+#researchViewport {
+    width: 100%;
+    height: 1000px;
+    background: var(--panel-bg-color, #111);
+    border: 1px solid var(--black-accent-color);
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+}
+
+#researchMap {
+    /* large virtual area; adjusted dynamically by script */
+    transform: translate(0px, 0px);
+    transition: transform 0ms linear;
+}
+
+.research-node {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+.research-node:hover {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.8);
+}
+
+/* make buttons look consistent */
+button {
+    background: var(--button-bg, #333);
+    color: var(--button-fg, #fff);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 4px;
 }
 
 #mpsDisplay {
@@ -76,4 +118,53 @@ html, body {
 
 #productionLineContainer select:focus {
     outline: none;
+}
+
+.menuContainer {
+    position: fixed;
+    z-index: 1000;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+}
+
+#menuMoneyDisplay {
+    font-size: 1.2em;
+    color: var(--text-color);
+    border: 1px solid var(--black-accent-color);
+    border-top: none;
+    border-left: none;
+    min-width: 140px;
+    height: 45px;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+}
+
+.menuButtons {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0;
+    margin: 0;
+}
+
+.menuButton {
+    list-style-type: none;
+    border: 1px solid var(--black-accent-color);
+    border-top: none;
+    border-left: none;
+    height: 40px;
+    min-width: 120px;
+    font-size: 1em;
+    padding-left: 30px;
+    display: flex;
+    align-items: center;
+}
+
+.menuButton:hover {
+    background-color: var(--background-color-active);
+    cursor: pointer;
 }
