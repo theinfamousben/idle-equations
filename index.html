@@ -11,6 +11,17 @@
 </head>
 <body>
     <div id="game">
+        <div class="menuContainer">
+            <div class="menu">
+                <div id="menuMoneyDisplay">
+                    <p id="menuMoneyDisplayText">[menuMoneyDisplayVar]</p>
+                </div>
+                <ul class="menuButtons">
+                    <li id="homeButton" class="menuButton">Home</li>
+                    <li id="researchButton" class="menuButton">Research</li>
+                </ul>
+            </div>
+        </div>
         <div id="home" class="page">
             <p id="moneyDisplay">[moneyDisplayVar]</p>
             <div id="productionLineContainer">
@@ -23,7 +34,6 @@
             <p id="mpsDisplay"></p>
         </div>
         <div id="research" class="page">
-            <h2>Research</h2>
             <div id="researchViewport">
                 <div id="researchMap">
                     <!-- Research nodes will be rendered here -->

@@ -5,6 +5,13 @@ import * as notation from './notation.js';
 import en_us from "./lang/en_us.js";
 import de_de from "./lang/de_de.js";
 
+// TO FUTURE ME:
+// DO NOT REMOVE THE ABOVE IMPORTS FOR LANGUAGES
+// THEY *ARE* NEEDED, IT JUST DOESN'T SHOW BECAUSE THEY'RE NOT USED DIRECTLY
+// EVAL() IS A SHIT FUNCTION
+// ALSO ADD THESE MODULES WHEN MAKING NEW LANGUAGES
+// AGAIN, FUCK EVAL
+
 function l(what) {
     return document.getElementById(what);
     // yes i stole this from cookie clicker sue me bitch
@@ -46,9 +53,9 @@ var Game = {};
         },
         language: {
             name: "Language",
-            desctiption: "The Language the Game is in",
+            description: "The Language the Game is in",
             category: "Gameplay",
-            value: "de_de",
+            value: "en_us",
             constriction: ["en_us", "de_de"],
             default: "en_us",
             showInMenu: true,
@@ -83,8 +90,10 @@ var Game = {};
     );
 
     Game.updateVisuals = function() {
+        Game.showPage(Game.currentPage);
         let plw = l('productionLineWarning');
         l('moneyDisplay').innerHTML = Game.transl("YouHaveXMoney");
+        l('menuMoneyDisplay').innerHTML = "$" + notation.biNotation(Game.money, 2);
         l('mpsDisplay').innerHTML = Game.transl("WithYourEquation");
         let check = Game.productionLineCheck();
         
@@ -247,6 +256,16 @@ var Game = {};
         l('theme').href = "./themes/" + theme + ".css"
     }
 
+    Game.showPage = function(page) {
+        const pages =  document.getElementsByClassName("page")
+
+        for (let i = 0; i < pages.length; i++) {
+            
+            pages[i].style.display = "none";
+        }
+        document.getElementById(page).style.display = "flex";
+    }
+
     // --- Research / Tech Tree ---
     // Simple research system: nodes have id, name, description, cost (Decimal), unlocked, prerequisites and an effect
     Game.research = {
@@ -259,6 +278,7 @@ var Game = {};
                 unlocked: false,
                 prerequisites: [],
                 pos: { x: 200, y: 120 },
+                icon: '×', // placeholder text icon
                 effect: { type: 'unlockIncrementor', target: 'multiplication', amount: 1 }
             },
             unlock_exponentiation: {
@@ -269,16 +289,18 @@ var Game = {};
                 unlocked: false,
                 prerequisites: ['unlock_multiplication'],
                 pos: { x: 420, y: 120 },
+                icon: '^', // placeholder text icon
                 effect: { type: 'unlockIncrementor', target: 'exponentiation', amount: 1 }
             },
             increase_cap_small: {
                 id: 'increase_cap_small',
                 name: 'Increase MPS Cap I',
                 description: 'Increase the maximum allowed value for your equation output (mps cap) by 10.',
-                cost: new Decimal(25),
+                cost: new Decimal(10),
                 unlocked: false,
                 prerequisites: [],
                 pos: { x: 200, y: 300 },
+                icon: '↑', // placeholder text icon
                 effect: { type: 'increaseCap', amount: new Decimal(10) }
             },
             increase_cap_large: {
@@ -289,9 +311,33 @@ var Game = {};
                 unlocked: false,
                 prerequisites: ['increase_cap_small'],
                 pos: { x: 420, y: 300 },
+                icon: '↑↑', // placeholder text icon
                 effect: { type: 'increaseCap', amount: new Decimal(100) }
+            },
+            sample1: {
+                id: 'sample1',
+                name: 'Sample Research 1',
+                description: 'This is a sample research node with no effect.',
+                cost: new Decimal(50),
+                unlocked: false,
+                prerequisites: ['unlock_exponentiation'],
+                pos: { x: 550, y: 100 },
+                icon: 'S1', // placeholder text icon
+                effect: null
+            },
+            sample2: {
+                id: 'sample2',
+                name: 'Sample Research 2',
+                description: 'Another sample research node with no effect.',
+                cost: new Decimal(500),
+                unlocked: false,
+                prerequisites: ['unlock_exponentiation', 'increase_cap_large'],
+                pos: { x: 550, y: 220 },
+                icon: 'S2', // placeholder text icon
+                effect: null
             }
-        }
+        },
+        selectedNode: null // track which node detail panel is showing
     }
 
     Game.applyResearchEffect = function(node) {
@@ -349,76 +395,261 @@ var Game = {};
             map.style.backgroundSize = '40px 40px';
         }
 
+        // create SVG layer for connectors
+        let svg = document.getElementById('researchConnectors');
+        if (!svg) {
+            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.id = 'researchConnectors';
+            svg.style.position = 'absolute';
+            svg.style.top = '0';
+            svg.style.left = '0';
+            svg.style.width = '1200px';
+            svg.style.height = '800px';
+            svg.style.pointerEvents = 'none';
+            svg.style.zIndex = '0';
+            container.parentElement.insertBefore(svg, container);
+        }
+        svg.innerHTML = ''; // clear connectors
+
+        // draw connectors between nodes and their prerequisites
+        // Connectors should end at the left anchor (left edge center) of the target node
+        for (const key in Game.research.nodes) {
+            const node = Game.research.nodes[key];
+            if (!node.prerequisites || node.prerequisites.length === 0) continue;
+            const nodeSize = 96;
+
+            // target anchor: left edge, vertically centered
+            const targetX = (node.pos?.x || 50);
+            const targetY = (node.pos?.y || 50) + nodeSize / 2;
+
+            node.prerequisites.forEach(preId => {
+                const preNode = Game.research.nodes[preId];
+                if (!preNode) return;
+
+                // source anchor: right edge, vertically centered (origin of the arrow)
+                const sourceX = (preNode.pos?.x || 50) + nodeSize + 5; // right edge
+                const sourceY = (preNode.pos?.y || 50) + nodeSize / 2;
+
+                // draw line from source center to target left-anchor
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', sourceX);
+                line.setAttribute('y1', sourceY);
+                line.setAttribute('x2', targetX);
+                line.setAttribute('y2', targetY);
+                line.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+                line.setAttribute('stroke-width', '2');
+                svg.appendChild(line);
+
+                // draw arrowhead with tip at the target anchor
+                const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                const angle = Math.atan2(targetY - sourceY, targetX - sourceX);
+                const arrowSize = 8;
+                const tipX = targetX;
+                const tipY = targetY;
+                const points = [
+                    [tipX, tipY],
+                    [tipX - arrowSize * Math.cos(angle - Math.PI / 6), tipY - arrowSize * Math.sin(angle - Math.PI / 6)],
+                    [tipX - arrowSize * Math.cos(angle + Math.PI / 6), tipY - arrowSize * Math.sin(angle + Math.PI / 6)]
+                ];
+                arrow.setAttribute('points', points.map(p => p.join(',')).join(' '));
+                arrow.setAttribute('fill', 'rgba(255,255,255,0.2)');
+                svg.appendChild(arrow);
+            });
+        }
+
+        // render nodes as icon boxes
         for (const key in Game.research.nodes) {
             const node = Game.research.nodes[key];
 
-            const card = document.createElement('div');
-            card.className = 'research-card';
-            card.style.border = '1px solid var(--black-accent-color)';
-            card.style.padding = '8px';
-            card.style.margin = '0';
-            card.style.borderRadius = '6px';
-            card.style.background = 'var(--panel-bg-color, #222)';
-            card.style.width = '180px';
-            card.style.position = 'absolute';
-            // default position if not provided
-            const x = (node.pos && node.pos.x) ? node.pos.x : 50;
-            const y = (node.pos && node.pos.y) ? node.pos.y : 50;
-            card.style.left = x + 'px';
-            card.style.top = y + 'px';
+            const box = document.createElement('div');
+            box.className = 'research-node';
+            box.style.position = 'absolute';
+            box.style.width = '96px';
+            box.style.height = '96px';
+            box.style.left = (node.pos?.x || 50) + 'px';
+            box.style.top = (node.pos?.y || 50) + 'px';
+            box.style.border = '3px solid';
+            box.style.borderRadius = '12px';
+            box.style.display = 'flex';
+            box.style.alignItems = 'center';
+            box.style.justifyContent = 'center';
+            box.style.fontSize = '48px';
+            box.style.fontWeight = 'bold';
+            box.style.cursor = 'pointer';
+            box.style.transition = 'all 0.2s';
+            box.style.zIndex = '1';
+            box.style.userSelect = 'none';
 
-            const title = document.createElement('h3');
-            title.innerText = node.name;
-            title.style.margin = '0 0 6px 0';
-            card.appendChild(title);
-
-            const desc = document.createElement('p');
-            desc.innerText = node.description;
-            desc.style.margin = '0 0 6px 0';
-            card.appendChild(desc);
-
-            const cost = document.createElement('p');
-            cost.innerText = 'Cost: ' + notation.biNotation(node.cost, 2);
-            cost.style.margin = '0 0 6px 0';
-            card.appendChild(cost);
-
-            const status = document.createElement('p');
-            status.style.fontWeight = '600';
-            status.style.margin = '0 0 6px 0';
-            // determine availability
+            // determine state and colors
             const avail = Game.canBuyResearch(node);
             if (node.unlocked) {
-                status.innerText = 'Unlocked';
-            } else if (avail.reason === 'prerequisites') {
-                const missing = avail.missing.map(id => (Game.research.nodes[id] ? Game.research.nodes[id].name : id));
-                status.innerText = 'Locked — requires: ' + missing.join(', ');
-            } else if (avail.reason === 'money') {
-                status.innerText = 'Locked — insufficient funds';
+                box.style.background = 'linear-gradient(135deg, rgba(100,200,100,0.3), rgba(50,150,50,0.3))';
+                box.style.borderColor = 'rgba(100,255,100,0.8)';
+                box.style.color = 'rgba(200,255,200,0.9)';
+            } else if (avail.canBuy) {
+                box.style.background = 'linear-gradient(135deg, rgba(100,150,255,0.3), rgba(50,100,200,0.3))';
+                box.style.borderColor = 'rgba(100,150,255,0.8)';
+                box.style.color = 'rgba(200,220,255,0.9)';
             } else {
-                status.innerText = 'Available';
+                box.style.background = 'linear-gradient(135deg, rgba(80,80,80,0.3), rgba(40,40,40,0.3))';
+                box.style.borderColor = 'rgba(100,100,100,0.5)';
+                box.style.color = 'rgba(120,120,120,0.6)';
             }
-            card.appendChild(status);
+
+
+            // icon (text placeholder or future SVG)
+            box.innerText = Game.isResearchNodeHidden(node)
+                ? "?"
+                : node.icon || '??';
+
+            // click to show detail panel
+            box.addEventListener('click', function() {
+                Game.research.selectedNode = node.id;
+                Game.renderResearchDetail();
+            });
+
+            // hover effect
+            box.addEventListener('mouseenter', function() {
+                if (!node.unlocked) box.style.transform = 'scale(1.05)';
+            });
+            box.addEventListener('mouseleave', function() {
+                box.style.transform = 'scale(1)';
+            });
+
+            container.appendChild(box);
+        }
+
+        // render detail panel if a node is selected
+        Game.renderResearchDetail();
+    }
+
+    Game.isResearchNodeHidden = function(node) {
+        let q = false;
+        for (let pre of node.prerequisites) {
+            const pnode = Game.research.nodes[pre];
+            if (!pnode || !pnode.unlocked) {
+                q = true;
+            }
+        }
+
+        return q;
+    }
+
+    Game.renderResearchDetail = function() {
+        let panel = document.getElementById('researchDetailPanel');
+        if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'researchDetailPanel';
+            panel.style.position = 'fixed';
+            panel.style.right = '20px';
+            panel.style.top = '20px';
+            panel.style.width = '280px';
+            // constant height matching viewport height minus margins
+            const viewportHeight = window.innerHeight; // matches #researchViewport height from CSS
+            const topMargin = 20; // top position
+            const bottomMargin = 40; // space from bottom
+            panel.style.height = `${viewportHeight - bottomMargin}px`;
+            panel.style.padding = '16px';
+            panel.style.background = 'var(--panel-bg-color, #222)';
+            panel.style.border = '2px solid var(--black-accent-color)';
+            panel.style.borderRadius = '8px';
+            panel.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+            panel.style.zIndex = '1000';
+            panel.style.display = 'none';
+            panel.style.overflowY = 'auto';
+            panel.style.boxSizing = 'border-box';
+            document.body.appendChild(panel);
+        }
+
+        if (!Game.research.selectedNode) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        const node = Game.research.nodes[Game.research.selectedNode];
+        if (!node) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        panel.style.display = 'block';
+        panel.innerHTML = '';
+
+        // close button
+        const closeBtn = document.createElement('button');
+        closeBtn.innerText = '×';
+        closeBtn.style.position = 'absolute';
+        closeBtn.style.top = '8px';
+        closeBtn.style.right = '8px';
+        closeBtn.style.background = 'transparent';
+        closeBtn.style.border = 'none';
+        closeBtn.style.color = 'var(--text-color)';
+        closeBtn.style.fontSize = '24px';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.addEventListener('click', function() {
+            Game.research.selectedNode = null;
+            Game.renderResearchDetail();
+        });
+        panel.appendChild(closeBtn);
+        
+        const isHidden = Game.isResearchNodeHidden(node);
+
+
+        const title = document.createElement('h3');
+        title.innerText = isHidden ? "Unknown" : node.name;
+        title.style.margin = '0 0 12px 0';
+        panel.appendChild(title);
+
+        const desc = document.createElement('p');
+        desc.innerText = isHidden ? "Research the prior node to unlock details" : node.description;
+        desc.style.margin = '0 0 12px 0';
+        desc.style.fontSize = '0.9em';
+        panel.appendChild(desc);
+
+        const cost = document.createElement('p');
+        cost.innerText = isHidden ? "" : 'Cost: ' + notation.biNotation(node.cost, 2);
+        cost.style.margin = '0 0 12px 0';
+        cost.style.fontWeight = '600';
+        panel.appendChild(cost);
+
+        const avail = Game.canBuyResearch(node);
+        if (node.unlocked) {
+            const status = document.createElement('p');
+            status.innerText = '✓ Unlocked';
+            status.style.color = 'rgba(100,255,100,0.9)';
+            status.style.fontWeight = '600';
+            panel.appendChild(status);
+        } else {
+            if (avail.reason === 'prerequisites') {
+                const missing = avail.missing.map(id => (Game.research.nodes[id] 
+                    ? Game.isResearchNodeHidden(Game.research.nodes[id]) 
+                        ? "Unknown"
+                        : Game.research.nodes[id].name
+                    : id));
+                const status = document.createElement('p');
+                status.innerText = 'Requires: ' + missing.join(', ');
+                status.style.color = 'rgba(255,200,100,0.9)';
+                status.style.fontSize = '0.85em';
+                panel.appendChild(status);
+            }
 
             const btn = document.createElement('button');
-            btn.innerText = node.unlocked ? 'Researched' : 'Research';
-            btn.style.padding = '6px 10px';
-            btn.style.cursor = node.unlocked ? 'default' : 'pointer';
-            btn.style.marginTop = '6px';
-
-            if (!node.unlocked) {
-                if (!avail.canBuy) {
-                    btn.disabled = true;
-                    if (avail.reason === 'money') btn.title = 'Not enough money';
-                    else if (avail.reason === 'prerequisites') btn.title = 'Requires: ' + avail.missing.join(', ');
-                }
-            } else {
-                btn.disabled = true;
+            btn.innerText = 'Purchase';
+            btn.style.width = '100%';
+            btn.style.padding = '10px';
+            btn.style.marginTop = '8px';
+            btn.style.fontSize = '1em';
+            btn.style.fontWeight = '600';
+            btn.style.cursor = avail.canBuy ? 'pointer' : 'not-allowed';
+            btn.disabled = !avail.canBuy;
+            if (avail.canBuy) {
+                btn.style.background = 'linear-gradient(135deg, rgba(100,150,255,0.6), rgba(50,100,200,0.6))';
+                btn.style.color = 'white';
             }
-
-            btn.addEventListener('click', function() { Game.buyResearch(node.id); });
-            card.appendChild(btn);
-
-            container.appendChild(card);
+            btn.addEventListener('click', function() {
+                Game.buyResearch(node.id);
+            });
+            panel.appendChild(btn);
         }
     }
 
@@ -437,6 +668,7 @@ var Game = {};
         node.unlocked = true;
         Game.applyResearchEffect(node);
         Game.renderResearch();
+        Game.renderResearchDetail();
         Game.updateVisuals();
     }
 
@@ -445,11 +677,22 @@ var Game = {};
 
 
 
+
+
     Game.init = function() {
         Game.loadTheme(Game.settings.theme.value);
-        Game.money = new Decimal(0);
+        Game.money = new Decimal(1);
         Game.mpsCap = new Decimal(1);
         Game.timers['GameLoop'] = Game.addTimer(Game.settings.framerate.value, Game.loop);
+        Game.currentPage = "home";
+
+        for (let btn of document.getElementsByClassName("menuButton")) {
+            btn.addEventListener("click", function() {
+                Game.currentPage = this.id.replace("Button", "");
+            });
+        }
+
+
         // render research UI
         Game.renderResearch();
         // setup panning for research map
