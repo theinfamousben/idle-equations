@@ -1,5 +1,5 @@
 export default {
-    "name": "German (Germany)",
+    "name": "Deutsch (Deutschland)",
     "code": "de_de",
     "words": {
         "missing": "[[[Fehlende Übersetzung: \"&&ttext&&\"]]]",

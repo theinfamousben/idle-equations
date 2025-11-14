@@ -1,6 +1,7 @@
 import {evaluate} from 'https://cdn.jsdelivr.net/npm/mathjs@13.2.0/+esm';
-import Decimal from './break_infinity.js';
-import * as notation from './notation.js';
+import Decimal from './js/helpers/break_infinity.js';
+import * as notation from './js/helpers/notation.js';
+import inc from './js/incrementors/index.js'
 
 import en_us from "./lang/en_us.js";
 import de_de from "./lang/de_de.js";
@@ -63,29 +64,70 @@ var Game = {};
         }
     };
 
-    Game.incrementor = function(id, rep, maxUses) {
+    Game.incrementors = inc;
+
+
+    Game.number = function(id, rep, maxUses, prodTime) {
         this.id = id;
         this.representation = rep;
         this.maxUses = maxUses;
+        this.productionTime = new Decimal(prodTime); // production time in ms
     }
 
-    Game.incrementors = {};
+    Game.numbers = {}
 
-    Game.incrementors.addition = new Game.incrementor(
-        'addition',
-        '+',
-        1
+    Game.numbers['1'] = new Game.number(
+        '1',
+        '1',
+        1,
+        1000
     );
 
-    Game.incrementors.multiplication = new Game.incrementor(
-        'multiplication',
-        '*',
+    Game.numbers['2'] = new Game.number(
+        '2',
+        '2',
+        0
+    )
+
+    Game.numbers['3'] = new Game.number(
+        '3',
+        '3',
         0
     );
 
-    Game.incrementors.exponentiation = new Game.incrementor(
-        'exponentiation',
-        '^',
+    Game.numbers['4'] = new Game.number(
+        '4',
+        '4',
+        0
+    );
+
+    Game.numbers['5'] = new Game.number(
+        '5',
+        '5',
+        0
+    );
+
+    Game.numbers['6'] = new Game.number(
+        '6',
+        '6',
+        0
+    );
+
+    Game.numbers['7'] = new Game.number(
+        '7',
+        '7',
+        0
+    );
+
+    Game.numbers['8'] = new Game.number(
+        '8',
+        '8',
+        0
+    );
+
+    Game.numbers['9'] = new Game.number(
+        '9',
+        '9',
         0
     );
 
@@ -93,7 +135,7 @@ var Game = {};
         Game.showPage(Game.currentPage);
         let plw = l('productionLineWarning');
         l('moneyDisplay').innerHTML = Game.transl("YouHaveXMoney");
-        l('menuMoneyDisplay').innerHTML = "$" + notation.biNotation(Game.money, 2);
+        l('menuMoneyDisplay').innerHTML = Game.transl("currencyShort");
         l('mpsDisplay').innerHTML = Game.transl("WithYourEquation");
         let check = Game.productionLineCheck();
         
@@ -240,7 +282,13 @@ var Game = {};
         let exit = eval(lang + ".words[\"" + what + "\"]") ?? eval(lang + ".words[\"missing\"]") ?? "missing";
 
         if (cusVar) {
-            exit = exit.replace("&&cusVar&&", cusVar);
+            if (Array.isArray(cusVar)) {
+                for (let i in cusVar) {
+                    exit = exit.replace("&&cusVar" + i + "&&", cusVar[i])
+                }
+
+            }
+            else exit = exit.replace("&&cusVar&&", cusVar);
         }
 
         exit = exit.replace("&&test&&", "test")
@@ -335,6 +383,105 @@ var Game = {};
                 pos: { x: 550, y: 220 },
                 icon: 'S2', // placeholder text icon
                 effect: null
+            },
+            unlock_number_1: {
+                id: 'unlock_number_1',
+                name: 'Unlock Number 1',
+                description: 'Unlock the number 1 for use in your production equations.',
+                cost: new Decimal(0),
+                unlocked: true,
+                prerequisites: [],
+                pos: { x: 200, y: 420},
+                icon: '1',
+                effect: null
+            },
+            unlock_number_2: {
+                id: 'unlock_number_2',
+                name: 'Unlock Number 2',
+                description: 'Unlock the number 2 for use in your production equations.',
+                cost: new Decimal(20),
+                unlocked: false,
+                prerequisites: ['unlock_number_1'],
+                pos: { x: 320, y: 420},
+                icon: '2',
+                effect: { type: 'unlockNumber', target: '2', amount: 1 }
+            },
+            unlock_number_3: {
+                id: 'unlock_number_3',
+                name: 'Unlock Number 3',
+                description: 'Unlock the number 3 for use in your production equations.',
+                cost: new Decimal(50),
+                unlocked: false,
+                prerequisites: ['unlock_number_2'],
+                pos: { x: 440, y: 420},
+                icon: '3',
+                effect: { type: 'unlockNumber', target: '3', amount: 1 }
+            },
+            unlock_number_4: {
+                id: 'unlock_number_4',
+                name: 'Unlock Number 4',
+                description: 'Unlock the number 4 for use in your production equations.',
+                cost: new Decimal(150),
+                unlocked: false,
+                prerequisites: ['unlock_number_3'],
+                pos: { x: 560, y: 420},
+                icon: '4',
+                effect: { type: 'unlockNumber', target: '4', amount: 1 }
+            },
+            unlock_number_5: {
+                id: 'unlock_number_5',
+                name: 'Unlock Number 5',
+                description: 'Unlock the number 5 for use in your production equations.',
+                cost: new Decimal(400),
+                unlocked: false,
+                prerequisites: ['unlock_number_4'],
+                pos: { x: 680, y: 420},
+                icon: '5',
+                effect: { type: 'unlockNumber', target: '5', amount: 1 }
+            },
+            unlock_number_6: {
+                id: 'unlock_number_6',
+                name: 'Unlock Number 6',
+                description: 'Unlock the number 6 for use in your production equations.',
+                cost: new Decimal(1200),
+                unlocked: false,
+                prerequisites: ['unlock_number_5'],
+                pos: { x: 800, y: 420},
+                icon: '6',
+                effect: { type: 'unlockNumber', target: '6', amount: 1 }
+            },
+            unlock_number_7: {
+                id: 'unlock_number_7',
+                name: 'Unlock Number 7',
+                description: 'Unlock the number 7 for use in your production equations.',
+                cost: new Decimal(3500),
+                unlocked: false,
+                prerequisites: ['unlock_number_6'],
+                pos: { x: 920, y: 420},
+                icon: '7',
+                effect: { type: 'unlockNumber', target: '7', amount: 1 }
+            },
+            unlock_number_8: {
+                id: 'unlock_number_8',
+                name: 'Unlock Number 8',
+                description: 'Unlock the number 8 for use in your production equations.',
+                cost: new Decimal(10000),
+                unlocked: false,
+                prerequisites: ['unlock_number_7'],
+                pos: { x: 1040, y: 420},
+                icon: '8',
+                effect: { type: 'unlockNumber', target: '8', amount: 1 }
+            },
+            unlock_number_9: {
+                id: 'unlock_number_9',
+                name: 'Unlock Number 9',
+                description: 'Unlock the number 9 for use in your production equations.',
+                cost: new Decimal(50000),
+                unlocked: false,
+                prerequisites: ['unlock_number_8'],
+                pos: { x: 1160, y: 420},
+                icon: '9',
+                effect: { type: 'unlockNumber', target: '9', amount: 1 }
             }
         },
         selectedNode: null // track which node detail panel is showing
@@ -343,17 +490,27 @@ var Game = {};
     Game.applyResearchEffect = function(node) {
         if (!node || !node.effect) return;
         const e = node.effect;
-        if (e.type === 'unlockIncrementor') {
-            if (Game.incrementors[e.target]) {
-                Game.incrementors[e.target].maxUses = (Game.incrementors[e.target].maxUses || 0) + (e.amount || 1);
-            }
-        } else if (e.type === 'increaseCap') {
-            try {
-                Game.mpsCap = Game.mpsCap.plus(e.amount);
-            } catch (err) {
-                // fallback if amount isn't Decimal
-                Game.mpsCap = Game.mpsCap.plus(new Decimal(e.amount));
-            }
+        switch (e.type) {
+            case 'unlockIncrementor':
+                if (Game.incrementors[e.target]) {
+                    Game.incrementors[e.target].maxUses = (Game.incrementors[e.target].maxUses || 0) + (e.amount || 1);
+                }
+                break;
+            case 'unlockNumber':
+                if (Game.numbers[e.target]) {
+                    Game.numbers[e.target].maxUses = (Game.numbers[e.target].maxUses || 0) + (e.amount || 1);
+                }
+                break;
+            case 'increaseCap':
+                try {
+                    Game.mpsCap = Game.mpsCap.plus(e.amount);
+                } catch (err) {
+                    // fallback if amount isn't Decimal
+                    Game.mpsCap = Game.mpsCap.plus(new Decimal(e.amount));
+                }
+                break;
+            default:
+                return; // unknown effect type
         }
     }
 
@@ -671,13 +828,6 @@ var Game = {};
         Game.renderResearchDetail();
         Game.updateVisuals();
     }
-
-
-
-
-
-
-
 
     Game.init = function() {
         Game.loadTheme(Game.settings.theme.value);
