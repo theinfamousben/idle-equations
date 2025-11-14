@@ -2,6 +2,8 @@ export default {
     "name": "English (US)",
     "code": "en_us",
     "words": {
+        "currencyShort": "\$&&money&&",
+        "currencyLong": "&&money&& money",
         "missing": "[[[Missing translation: \"&&ttext&&\"]]]",
         "YouHaveXMoney": "You Have &&money&& money.",
         "WithYourEquation": "With your equation, you are making &&mps&& money per second.",
